@@ -1,1 +1,1 @@
-# rhai-basic-example
+# rhoai-basic-example
