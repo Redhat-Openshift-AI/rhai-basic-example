@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-app-of-app
+  namespace: openshift-gitops
+spec:
+  destination:
+    namespace: openshift-gitops
+    server: 'https://kubernetes.default.svc'
+  project: default
+  sources:
+    - chart: argocd-app-of-app
+      repoURL: https://gnunn-gitops.github.io/helm-charts
+      targetRevision: 0.4.1
+      helm:
+        valueFiles:
+        - $values/bootstrap/gitops/appofapps-values.yaml  
+    - ref: values
+      repoURL: 'https://github.com/davidseve/mlops.git'
+      targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true

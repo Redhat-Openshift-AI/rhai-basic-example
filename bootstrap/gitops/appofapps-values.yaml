@@ -1,0 +1,137 @@
+default:
+  app:
+    enabled: true
+    enableAutoSync: true
+    autoSyncPrune: false
+    project: cluster-config
+    labels:
+      app-source: base
+      repo: cluster-config
+    destination:   
+      namespace: openshift-gitops
+      server: https://kubernetes.default.svc
+    source:       
+      repoURL: 'https://github.com/davidseve/mlops.git'
+      targetRevision: HEAD      
+projects:
+  cluster-config:
+    annotations:
+      notifications.argoproj.io/subscribe.on-sync-failed.slack: cluster-gitops
+      notifications.argoproj.io/subscribe.on-health-degraded.slack: cluster-gitops
+    description: Project for overall cluster configuration
+    namespace: openshift-gitops
+    destinations: |
+      - namespace: '*'
+        server: https://kubernetes.default.svc
+    sourceRepos:
+      - https://github.com/davidseve/mlops.git  
+    extraFields: |
+      clusterResourceWhitelist:
+      - group: '*'
+        kind: '*'           
+
+applications:
+  argocd:
+    project: cluster-config
+    annotations:
+      argocd.argoproj.io/sync-wave: '15'
+    source:
+      path: bootstrap/gitops/common/argocd
+    destination:
+      namespace: openshift-gitops
+
+  minio:
+    project: cluster-config
+    annotations:
+      argocd.argoproj.io/sync-wave: '20'
+    source:
+      path: bootstrap/gitops/common/minio
+    destination:
+      namespace: minio     
+
+  pipelines:
+    project: cluster-config
+    annotations:
+      argocd.argoproj.io/sync-wave: '20'
+    source:
+      path: bootstrap/gitops/common/pipelines
+    destination:
+      namespace: openshift-operators      
+
+  service-mesh:
+    project: cluster-config
+    annotations:
+      argocd.argoproj.io/sync-wave: '20'
+    source:
+      path: bootstrap/gitops/common/service-mesh
+    destination:
+      namespace: openshift-operators  
+
+  serverless:
+    project: cluster-config
+    annotations:
+      argocd.argoproj.io/sync-wave: '20'
+    source:
+      path: bootstrap/gitops/common/serverless
+    destination:
+      namespace: openshift-serverless
+
+  ods:
+    project: cluster-config
+    annotations:
+      argocd.argoproj.io/sync-wave: '25'
+    source:
+      path: bootstrap/gitops/common/ods
+    destination:
+      namespace: redhat-ods-operator  
+      
+  # rbac:
+  #   project: cluster-config
+  #   annotations:
+  #     argocd.argoproj.io/sync-wave: '10'
+  #   source:
+  #     path: bootstrap/gitops/common/rbac/base
+
+  # sealed-secrets:
+  #   project: cluster-config
+  #   annotations:
+  #     argocd.argoproj.io/sync-wave: '10'
+  #   source:
+  #     path: bootstrap/gitops/common/sealed-secrets/base
+  # postgresdb:
+  #   project: cluster-config
+  #   annotations:
+  #     argocd.argoproj.io/sync-wave: '20'
+  #   source:
+  #     path: bootstrap/gitops/common/postgresdb/base
+
+  # nfd:
+  #   project: cluster-config
+  #   annotations:
+  #     argocd.argoproj.io/sync-wave: '20'
+  #   source:
+  #     path: bootstrap/gitops/common/nfd/base
+
+  # nvidia-gpu-operator:
+  #   project: cluster-config
+  #   annotations:
+  #     argocd.argoproj.io/sync-wave: '20'
+  #   source:
+  #     path: bootstrap/gitops/common/nvidia-gpu/base
+
+  # rhods:
+  #   project: cluster-config
+  #   annotations:
+  #     argocd.argoproj.io/sync-wave: '20'
+  #   source:
+  #     path: bootstrap/gitops/common/rhods/base
+
+  # custom-notebooks:
+  #   project: cluster-config
+  #   annotations:
+  #     argocd.argoproj.io/sync-wave: '20'
+  #   source:
+  #     repoURL: http://tfsmaster:8080/tfs/DefaultCollection/MLOps/_git/rhoai-custom-notebook-images
+  #     targetRevision: second
+  #     path: manifests/base
+
